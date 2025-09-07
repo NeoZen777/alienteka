@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Roles Enum
+enum UserRole {
+  READER
+  CONTRIBUTOR
+  MODERATOR
+  ADMIN
+}
+
+// Article Status Enum
+enum ArticleStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  REJECTED
+  ARCHIVED
+}
+
+// Sighting Types Enum
+enum SightingType {
+  LIGHTS
+  CRAFT
+  HUMANOID
+  TRIANGLE
+  DISK
+  CIGAR
+  SPHERE
+  OTHER
+}
+
+// Evidence Types Enum
+enum EvidenceType {
+  PHOTO
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
+// Comment Status Enum
+enum CommentStatus {
+  PUBLISHED
+  PENDING
+  HIDDEN
+  DELETED
+}
+
+// Users Model
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  email       String   @unique
+  fullName    String?
+  avatar      String?
+  bio         String?
+  role        UserRole @default(READER)
+  reputation  Int      @default(0)
+  joinDate    DateTime @default(now())
+  lastActive  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  articles    Article[]
+  comments    Comment[]
+  sightings   Sighting[]
+  authoredComments Comment[] @relation("CommentAuthor")
+
+  @@map("users")
+}
+
+// Categories Model
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  color       String?
+  parentId    String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  articles    Article[]
+
+  @@map("categories")
+}
+
+// Articles Model
+model Article {
+  id            String         @id @default(cuid())
+  title         String
+  slug          String         @unique
+  content       Json           // Rich content stored as JSON
+  excerpt       String?
+  coverImage    String?
+  tags          String[]       // Array of tags
+  metaTitle     String?
+  metaDescription String?
+  status        ArticleStatus  @default(DRAFT)
+  views         Int            @default(0)
+  likes         Int            @default(0)
+  featured      Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  publishedAt   DateTime?
+
+  // Foreign Keys
+  authorId      String
+  categoryId    String
+
+  // Relations
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category      Category       @relation(fields: [categoryId], references: [id])
+  comments      Comment[]
+  sightings     Sighting[]     // Related sightings
+
+  @@map("articles")
+}
+
+// Sightings Model
+model Sighting {
+  id            String       @id @default(cuid())
+  location      String       // Location name/description
+  latitude      Float
+  longitude     Float
+  dateOccurred  DateTime
+  dateReported  DateTime     @default(now())
+  sightingType  SightingType
+  description   String
+  credibility   Int          @default(1) // 1-10 scale
+  verified      Boolean      @default(false)
+  witnessCount  Int          @default(1)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Foreign Keys
+  reporterId    String?
+  articleId     String?      // Optional related article
+
+  // Relations
+  reporter      User?        @relation(fields: [reporterId], references: [id])
+  article       Article?     @relation(fields: [articleId], references: [id])
+  evidence      Evidence[]
+
+  @@map("sightings")
+}
+
+// Evidence Model
+model Evidence {
+  id          String       @id @default(cuid())
+  filename    String
+  fileUrl     String
+  fileSize    Int?
+  mimeType    String
+  type        EvidenceType
+  verified    Boolean      @default(false)
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Foreign Keys
+  sightingId  String
+
+  // Relations
+  sighting    Sighting     @relation(fields: [sightingId], references: [id], onDelete: Cascade)
+
+  @@map("evidence")
+}
+
+// Comments Model
+model Comment {
+  id          String        @id @default(cuid())
+  content     String
+  status      CommentStatus @default(PUBLISHED)
+  upvotes     Int           @default(0)
+  downvotes   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Foreign Keys
+  authorId    String
+  articleId   String?
+  parentId    String?       // For nested replies
+
+  // Relations
+  author      User          @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  article     Article?      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  parent      Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[]     @relation("CommentReplies")
+  user        User          @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
