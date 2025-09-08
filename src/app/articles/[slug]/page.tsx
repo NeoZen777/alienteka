@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation'
-import { demoArticles } from '@/lib/data'
+import { prisma } from '@/lib/prisma'
 
-export function generateStaticParams() {
-  return demoArticles.map((a) => ({ slug: a.slug }))
+export async function generateStaticParams() {
+  const articles: { slug: string }[] = await prisma.article.findMany({ select: { slug: true } })
+  return articles.map((a) => ({ slug: a.slug }))
 }
 
-export default function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = demoArticles.find((a) => a.slug === params.slug)
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  const article = await prisma.article.findUnique({ where: { slug: params.slug } })
   if (!article) return notFound()
 
   return (

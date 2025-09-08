@@ -26,6 +26,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user ?? null)
       setLoading(false)
+      if (session?.user) {
+        try {
+          await fetch('/api/users/ensure', { method: 'POST' })
+        } catch {}
+      }
     }
 
     getInitialSession()

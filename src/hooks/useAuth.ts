@@ -90,7 +90,10 @@ export function useAuth() {
         email,
         password,
         options: {
-          data: metadata
+          data: metadata,
+          emailRedirectTo: typeof window !== 'undefined' 
+            ? `${window.location.origin}/auth/callback` 
+            : undefined
         }
       })
       

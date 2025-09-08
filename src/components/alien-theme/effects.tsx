@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -124,28 +124,50 @@ export function MatrixRain({ className, density = 'medium' }: MatrixRainProps) {
 
   const characters = '0123456789ABCDEFアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン'
   
+  type RainItem = {
+    left: string
+    delay: number
+    duration: number
+    char: string
+  }
+
+  const [items, setItems] = useState<RainItem[]>([])
+
+  // Generate animation parameters only after mount to avoid SSR/client mismatch
+  useEffect(() => {
+    const count = densityMap[density]
+    const next: RainItem[] = Array.from({ length: count }).map(() => {
+      const delay = Math.random() * 5
+      const duration = Math.random() * 3 + 2
+      const left = `${Math.random() * 100}%`
+      const char = characters.charAt(Math.floor(Math.random() * characters.length))
+      return { left, delay, duration, char }
+    })
+    setItems(next)
+  }, [density])
+  
   return (
     <div className={cn('absolute inset-0 overflow-hidden pointer-events-none', className)}>
-      {Array.from({ length: densityMap[density] }).map((_, i) => (
+      {items.map((item, i) => (
         <motion.div
           key={i}
           className="absolute text-alien-primary font-mono text-xs opacity-20"
           style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`
+            left: item.left,
+            animationDelay: `${item.delay}s`
           }}
           animate={{
             y: ['-100vh', '100vh'],
             opacity: [0, 0.8, 0]
           }}
           transition={{
-            duration: Math.random() * 3 + 2,
+            duration: item.duration,
             repeat: Infinity,
             ease: 'linear',
-            delay: Math.random() * 5
+            delay: item.delay
           }}
         >
-          {characters.charAt(Math.floor(Math.random() * characters.length))}
+          {item.char}
         </motion.div>
       ))}
     </div>
