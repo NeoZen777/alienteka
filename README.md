@@ -272,3 +272,32 @@ Made with 💚 by the ALIENTEKA team
 [Website](https://alienteka.com) • [Documentation](./docs) • [Community](https://discord.gg/alienteka) • [Report Bug](https://github.com/yourusername/alienteka/issues)
 
 </div>
+
+## Quick: cómo subir este proyecto a GitHub
+
+1. Asegúrate de que `.gitignore` incluye `.env*`, `.next`, `node_modules`.
+2. Inicializa git y haz commit:
+
+```powershell
+git init
+git add .
+git commit -m "Initial commit — ALIENTEKA"
+git branch -M main
+```
+
+3. Crea el repo en GitHub y añade el remoto (o usa `gh repo create`). Por ejemplo:
+
+```powershell
+git remote add origin https://github.com/tuUsuario/alienteka.git
+git push -u origin main
+```
+
+4. Si subiste `.env.local` por error, elimínalo del repo y rota las claves:
+
+```powershell
+git rm --cached .env.local
+git commit -m "remove .env.local from repo"
+git push
+```
+
+Si quieres que haga el push desde aquí, dime si quieres que use `gh` (si está instalado) o si me das la URL del repo remoto.
