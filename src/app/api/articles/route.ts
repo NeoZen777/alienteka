@@ -3,13 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { slugify } from '@/lib/utils'
-import type { Prisma } from '@prisma/client'
 import type { ArticleStatus } from '@/types'
 
+// Lightweight JSON value type to decouple from Prisma namespace if generation failed
 interface ArticleCreatePayload {
   title: string
   excerpt?: string | null
-  content: Prisma.InputJsonValue
+  content: unknown
   categoryId: string
   tags?: string[]
   status?: ArticleStatus
@@ -44,7 +44,9 @@ export async function POST(request: Request) {
       data: {
         title,
         slug,
-  content: content as Prisma.InputJsonValue,
+  // Prisma JSON field; cast to any to satisfy type since Prisma namespace import not available in env
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content: content as any,
         excerpt,
         categoryId,
         authorId: user.id,

@@ -1,5 +1,6 @@
 [build]
-  command = "npm run build"
+  # Use npm ci so postinstall runs (this triggers prisma generate) and keeps netlify cache stable
+  command = "npm ci && npm run build"
   publish = ".next"
 
 [[plugins]]
