@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
+import type { Comment as CommentType, CreateCommentForm } from '@/types'
 
 interface CommentFormProps {
   articleId: string
   parentId?: string
-  onCreated?: (c: any) => void
+  onCreated?: (c: CommentType) => void
   className?: string
 }
 
@@ -16,7 +17,7 @@ export function CommentForm({ articleId, parentId, onCreated, className }: Comme
   const [content, setContent] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!user) {
       alert('Debes iniciar sesión para comentar')
@@ -24,10 +25,11 @@ export function CommentForm({ articleId, parentId, onCreated, className }: Comme
     }
     if (!content.trim()) return
     setSubmitting(true)
+    const payload: CreateCommentForm = { content, articleId, parentId }
     const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, articleId, parentId }),
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
     setSubmitting(false)

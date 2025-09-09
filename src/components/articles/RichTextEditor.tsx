@@ -5,16 +5,18 @@ import StarterKit from '@tiptap/starter-kit'
 import { useAuth } from '@/hooks/useAuth'
 
 interface Props {
-  value: unknown
+  value?: unknown
   onChange: (json: unknown) => void
 }
 
 export function RichTextEditor({ value, onChange }: Props) {
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
+
+  const initialContent = typeof value === 'object' && value !== null ? value : undefined
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: value as any,
+    content: initialContent,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON())
     },

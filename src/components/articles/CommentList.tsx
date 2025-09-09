@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { formatRelativeTime, getInitials } from '@/lib/utils'
 import { CommentForm } from './CommentForm'
+import type { Comment as CommentType } from '@/types'
 import { useAuth } from '@/hooks/useAuth'
 
 interface Author {
@@ -9,16 +10,7 @@ interface Author {
   username: string
   avatar?: string | null
 }
-interface CommentItem {
-  id: string
-  content: string
-  createdAt: string
-  author: Author
-  replies?: CommentItem[]
-  parentId?: string | null
-  upvotes?: number
-  downvotes?: number
-}
+type CommentItem = CommentType & { replies?: CommentType[] }
 
 export function CommentList({ articleId }: { articleId: string }) {
   const [comments, setComments] = useState<CommentItem[]>([])
@@ -65,10 +57,10 @@ export function CommentList({ articleId }: { articleId: string }) {
           <li key={c.id} className="border border-green-800 rounded p-3 bg-black/50">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-black text-xs font-bold">
-                {c.author.avatar ? <img src={c.author.avatar} alt={c.author.username} className="w-8 h-8 rounded-full" /> : getInitials(c.author.username)}
+                {c.author?.avatar ? <img src={c.author.avatar} alt={c.author.username} className="w-8 h-8 rounded-full" /> : getInitials(c.author?.username ?? 'Anon')}
               </div>
               <div className="flex-1">
-                <span className="text-green-300 text-sm font-semibold">{c.author.username}</span>
+                <span className="text-green-300 text-sm font-semibold">{c.author?.username ?? 'Anon'}</span>
                 <span className="text-green-600 text-xs ml-2">{formatRelativeTime(c.createdAt)}</span>
               </div>
               <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className="text-green-400 text-xs hover:underline">Responder</button>
@@ -89,9 +81,9 @@ export function CommentList({ articleId }: { articleId: string }) {
                   <li key={r.id} className="bg-black/40 p-2 rounded border border-green-900">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-6 h-6 rounded-full bg-green-700 flex items-center justify-center text-black text-[10px] font-bold">
-                        {r.author.avatar ? <img src={r.author.avatar} alt={r.author.username} className="w-6 h-6 rounded-full" /> : getInitials(r.author.username)}
+                        {r.author?.avatar ? <img src={r.author.avatar} alt={r.author.username} className="w-6 h-6 rounded-full" /> : getInitials(r.author?.username ?? 'Anon')}
                       </div>
-                      <span className="text-green-300 text-xs font-semibold">{r.author.username}</span>
+                      <span className="text-green-300 text-xs font-semibold">{r.author?.username ?? 'Anon'}</span>
                       <span className="text-green-600 text-[10px] ml-1">{formatRelativeTime(r.createdAt)}</span>
                     </div>
                     <p className="text-green-200 text-xs whitespace-pre-wrap">{r.content}</p>
@@ -114,7 +106,7 @@ export function CommentList({ articleId }: { articleId: string }) {
 }
 
 function VoteButtons({ commentId }: { commentId: string }) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<boolean>(false)
   const [state, setState] = useState<{ upvotes: number; downvotes: number } | null>(null)
   const act = async (vote: 'up' | 'down') => {
     setLoading(true)
