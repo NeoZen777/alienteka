@@ -5,16 +5,22 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { RichTextEditor } from '@/components/articles/RichTextEditor'
 
 export default function NewArticlePage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [excerpt, setExcerpt] = useState('')
-  const [content, setContent] = useState('{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Nuevo artículo"}]}]}')
+  const [content, setContent] = useState<unknown>({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Nuevo artículo' }] }] })
   const [categoryId, setCategoryId] = useState('')
   const [saving, setSaving] = useState(false)
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([])
+  const [tags, setTags] = useState<string>('')
+  const [coverImage, setCoverImage] = useState('')
+  const [metaTitle, setMetaTitle] = useState('')
+  const [metaDescription, setMetaDescription] = useState('')
+  const [featured, setFeatured] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/auth/login')
@@ -30,7 +36,7 @@ export default function NewArticlePage() {
     const res = await fetch('/api/articles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, excerpt, content: JSON.parse(content), categoryId, status: 'PUBLISHED' }),
+  body: JSON.stringify({ title, excerpt, content, categoryId, status: 'PUBLISHED', tags: tags.split(',').map(t=>t.trim()).filter(Boolean), coverImage: coverImage || null, metaTitle: metaTitle || null, metaDescription: metaDescription || null, featured }),
     })
     const data = await res.json()
     setSaving(false)
@@ -54,7 +60,15 @@ export default function NewArticlePage() {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={8} className="w-full p-2 bg-black border border-green-700 rounded font-mono text-sm" />
+          <RichTextEditor value={content} onChange={setContent} />
+          <input value={tags} onChange={(e)=>setTags(e.target.value)} placeholder="Tags separadas por coma (ej: ovni, avistamiento)" className="w-full p-2 bg-black border border-green-700 rounded" />
+          <input value={coverImage} onChange={(e)=>setCoverImage(e.target.value)} placeholder="URL de imagen de portada (opcional)" className="w-full p-2 bg-black border border-green-700 rounded" />
+          <input value={metaTitle} onChange={(e)=>setMetaTitle(e.target.value)} placeholder="Meta Title (SEO opcional)" className="w-full p-2 bg-black border border-green-700 rounded" />
+          <textarea value={metaDescription} onChange={(e)=>setMetaDescription(e.target.value)} placeholder="Meta Description (SEO opcional)" rows={2} className="w-full p-2 bg-black border border-green-700 rounded text-sm" />
+          <label className="flex items-center gap-2 text-green-300 text-sm">
+            <input type="checkbox" checked={featured} onChange={(e)=>setFeatured(e.target.checked)} className="accent-green-600" />
+            Destacado
+          </label>
           <Button type="submit" disabled={saving} className="bg-green-600 hover:bg-green-700 text-black">
             {saving ? 'Guardando...' : 'Publicar'}
           </Button>

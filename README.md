@@ -235,6 +235,28 @@ npm run format       # Format code with Prettier
 - **Security**: Regular security audits
 - **GDPR Compliance**: Full data portability
 
+### Secure Upload & Auth Model
+
+| Area | Policy |
+|------|--------|
+| Article Comments | Solo usuarios autenticados pueden crear / votar. Visitantes solo leen. |
+| Image Uploads | Realizados vía endpoint server-side `/api/upload` usando `SUPABASE_SERVICE_ROLE_KEY` (no expuesta en el cliente). |
+| Bucket `uploads` | Organiza archivos por usuario (`users/{userId}/timestamp-nombre`). |
+| Tamaño Máximo | 5 MB (rechazado antes de subir). |
+| Tipos Permitidos | Solo `image/*` (validación MIME). |
+| Moderación Comentarios | Estado inicial `PENDING`. |
+
+Ventajas:
+1. La service role nunca viaja al navegador.
+2. Puedes añadir validaciones extra (dimensiones, hash) en `/api/upload`.
+3. Fácil rotación de claves: solo cambias la env server-side.
+
+Para producción considera:
+- Convertir imágenes (optimización) antes de almacenarlas.
+- Limitar número de uploads por usuario / día.
+- Añadir generación de URLs firmadas si el bucket se vuelve privado.
+- Registrar auditoría (tabla `upload_logs`).
+
 ## 📚 Documentation
 
 - [Setup Guide](./docs/setup.md)
