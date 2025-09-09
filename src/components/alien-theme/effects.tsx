@@ -115,12 +115,14 @@ interface MatrixRainProps {
   density?: 'low' | 'medium' | 'high'
 }
 
+// Hoist density map to avoid recreating reference and satisfy exhaustive-deps rule implicitly
+const MATRIX_DENSITY: Record<NonNullable<MatrixRainProps['density']>, number> = {
+  low: 20,
+  medium: 40,
+  high: 60,
+}
+
 export function MatrixRain({ className, density = 'medium' }: MatrixRainProps) {
-  const densityMap = {
-    low: 20,
-    medium: 40,
-    high: 60
-  }
 
   const characters = '0123456789ABCDEFアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン'
   
@@ -135,7 +137,7 @@ export function MatrixRain({ className, density = 'medium' }: MatrixRainProps) {
 
   // Generate animation parameters only after mount to avoid SSR/client mismatch
   useEffect(() => {
-    const count = densityMap[density]
+  const count = MATRIX_DENSITY[density]
     const next: RainItem[] = Array.from({ length: count }).map(() => {
       const delay = Math.random() * 5
       const duration = Math.random() * 3 + 2

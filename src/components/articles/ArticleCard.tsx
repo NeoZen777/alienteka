@@ -1,9 +1,18 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
-import type { Article } from '@/types'
+// Accept only the subset of fields actually used to avoid forcing callers to cast.
+type ArticleCardData = {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  coverImage: string | null
+  createdAt: Date
+  publishedAt: Date | null
+}
 
-export default function ArticleCard({ article }: { article: Article }) {
+export default function ArticleCard({ article }: { article: ArticleCardData }) {
   return (
     <Link href={`/articles/${article.slug}`}>
       <Card className="p-4 bg-black/80 border-2 border-green-600 hover:border-green-400 transition-colors shadow-[0_0_15px_rgba(0,255,0,0.2)]">

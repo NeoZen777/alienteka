@@ -6,8 +6,9 @@ export async function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }))
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = await prisma.article.findUnique({ where: { slug: params.slug } })
+export default async function ArticlePage(props: { params: Promise<{ slug: string }> }) {
+  const { slug } = await props.params
+  const article = await prisma.article.findUnique({ where: { slug } })
   if (!article) return notFound()
 
   return (

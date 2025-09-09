@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const params = useSearchParams()
   const supabase = createClientComponentClient()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -35,8 +34,9 @@ export default function ResetPasswordPage() {
       if (error) throw error
       setMessage('✅ Contraseña actualizada. Redirigiendo al login...')
       setTimeout(() => router.replace('/auth/login'), 1200)
-    } catch (e: any) {
-      setError(e?.message ?? 'No se pudo actualizar la contraseña')
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'No se pudo actualizar la contraseña'
+      setError(message)
     } finally {
       setIsLoading(false)
     }
